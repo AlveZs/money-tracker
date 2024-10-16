@@ -62,8 +62,10 @@ class _HomePageState extends State<HomePage> {
             SliverPadding(
               padding: const EdgeInsets.symmetric(vertical: 10),
               sliver: SliverAppBar(
-                collapsedHeight: 75,
+                collapsedHeight: 90,
                 flexibleSpace: Container(
+                  alignment: Alignment.center,
+                  margin: const EdgeInsets.symmetric(vertical: 8),
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: const SearchBar(
                     hintText: 'Buscar',

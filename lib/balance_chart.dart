@@ -6,42 +6,23 @@ class BalanceChart extends StatefulWidget {
   final Color leftBarColor = Colors.red;
   final Color rightBarColor = Colors.green;
   final Color avgColor = Colors.yellowAccent;
+  final Color touchedBarColor = Colors.yellowAccent;
   @override
   State<StatefulWidget> createState() => BalanceChartState();
 }
 
 class BalanceChartState extends State<BalanceChart> {
-  final double width = 7;
+  final double width = 10;
 
   late List<BarChartGroupData> rawBarGroups;
   late List<BarChartGroupData> showingBarGroups;
 
   int touchedGroupIndex = -1;
+  int touchedIndex = -1;
 
   @override
   void initState() {
     super.initState();
-    final barGroup1 = makeGroupData(0, 5, 12);
-    final barGroup2 = makeGroupData(1, 16, 12);
-    final barGroup3 = makeGroupData(2, 18, 5);
-    final barGroup4 = makeGroupData(3, 20, 16);
-    final barGroup5 = makeGroupData(4, 17, 6);
-    final barGroup6 = makeGroupData(5, 19, 1.5);
-    final barGroup7 = makeGroupData(6, 10, 1.5);
-
-    final items = [
-      barGroup1,
-      barGroup2,
-      barGroup3,
-      barGroup4,
-      barGroup5,
-      barGroup6,
-      barGroup7,
-    ];
-
-    rawBarGroups = items;
-
-    showingBarGroups = rawBarGroups;
   }
 
   @override
@@ -66,47 +47,78 @@ class BalanceChartState extends State<BalanceChart> {
                       getTooltipColor: ((group) {
                         return Colors.grey;
                       }),
-                      getTooltipItem: (a, b, c, d) => null,
+                      getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                        String weekDay;
+                        switch (group.x) {
+                          case 0:
+                            weekDay = 'Janeiro';
+                            break;
+                          case 1:
+                            weekDay = 'Fevereiro';
+                            break;
+                          case 2:
+                            weekDay = 'Março';
+                            break;
+                          case 3:
+                            weekDay = 'Abril';
+                            break;
+                          case 4:
+                            weekDay = 'Maio';
+                            break;
+                          case 5:
+                            weekDay = 'Junho';
+                            break;
+                          case 6:
+                            weekDay = 'Julho';
+                            break;
+                          case 7:
+                            weekDay = 'Agosto';
+                            break;
+                          case 8:
+                            weekDay = 'Setembro';
+                            break;
+                          case 9:
+                            weekDay = 'Outubro';
+                            break;
+                          case 10:
+                            weekDay = 'Novembro';
+                            break;
+                          case 11:
+                            weekDay = 'Dezembro';
+                            break;
+                          default:
+                            throw Error();
+                        }
+                        return BarTooltipItem(
+                          '$weekDay\n',
+                          const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
+                          children: <TextSpan>[
+                            TextSpan(
+                              text: (rod.toY).toString(),
+                              style: const TextStyle(
+                                color: Colors.white, //widget.touchedBarColor,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        );
+                      },
                     ),
-                    touchCallback: (FlTouchEvent event, response) {
-                      if (response == null || response.spot == null) {
-                        setState(() {
-                          touchedGroupIndex = -1;
-                          showingBarGroups = List.of(rawBarGroups);
-                        });
-                        return;
-                      }
-
-                      touchedGroupIndex = response.spot!.touchedBarGroupIndex;
-
+                    touchCallback: (FlTouchEvent event, barTouchResponse) {
                       setState(() {
-                        if (!event.isInterestedForInteractions) {
-                          touchedGroupIndex = -1;
-                          showingBarGroups = List.of(rawBarGroups);
+                        if (!event.isInterestedForInteractions ||
+                            barTouchResponse == null ||
+                            barTouchResponse.spot == null) {
+                          touchedIndex = -1;
                           return;
                         }
-                        showingBarGroups = List.of(rawBarGroups);
-                        if (touchedGroupIndex != -1) {
-                          var sum = 0.0;
-                          for (final rod
-                              in showingBarGroups[touchedGroupIndex].barRods) {
-                            sum += rod.toY;
-                          }
-                          final avg = sum /
-                              showingBarGroups[touchedGroupIndex]
-                                  .barRods
-                                  .length;
-
-                          showingBarGroups[touchedGroupIndex] =
-                              showingBarGroups[touchedGroupIndex].copyWith(
-                            barRods: showingBarGroups[touchedGroupIndex]
-                                .barRods
-                                .map((rod) {
-                              return rod.copyWith(
-                                  toY: avg, color: widget.avgColor);
-                            }).toList(),
-                          );
-                        }
+                        touchedIndex =
+                            barTouchResponse.spot!.touchedBarGroupIndex;
                       });
                     },
                   ),
@@ -137,7 +149,7 @@ class BalanceChartState extends State<BalanceChart> {
                   borderData: FlBorderData(
                     show: false,
                   ),
-                  barGroups: showingBarGroups,
+                  barGroups: showingGroups(),
                   gridData: const FlGridData(show: false),
                 ),
               ),
@@ -175,7 +187,20 @@ class BalanceChartState extends State<BalanceChart> {
   }
 
   Widget bottomTitles(double value, TitleMeta meta) {
-    final titles = <String>['Mn', 'Te', 'Wd', 'Tu', 'Fr', 'St', 'Su'];
+    final titles = <String>[
+      'Jn',
+      'Fv',
+      'Mr',
+      'Ab',
+      'Ma',
+      'Jn',
+      'Jl',
+      'Ag',
+      'St',
+      'Ot',
+      'Nv',
+      'Dz',
+    ];
 
     final Widget text = Text(
       titles[value.toInt()],
@@ -193,22 +218,58 @@ class BalanceChartState extends State<BalanceChart> {
     );
   }
 
-  BarChartGroupData makeGroupData(int x, double y1, double y2) {
+  BarChartGroupData makeGroupData(
+    int x,
+    double y1,
+    double y2, {
+    bool isTouched = false,
+  }) {
     return BarChartGroupData(
-      barsSpace: 4,
+      barsSpace: 1,
       x: x,
       barRods: [
         BarChartRodData(
           toY: y1,
-          color: widget.leftBarColor,
+          color: isTouched ? widget.touchedBarColor : widget.leftBarColor,
           width: width,
         ),
         BarChartRodData(
           toY: y2,
-          color: widget.rightBarColor,
+          color: isTouched ? widget.touchedBarColor : widget.rightBarColor,
           width: width,
         ),
       ],
     );
   }
+
+  List<BarChartGroupData> showingGroups() => List.generate(12, (i) {
+        switch (i) {
+          case 0:
+            return makeGroupData(0, 5, 12, isTouched: touchedIndex == i);
+          case 1:
+            return makeGroupData(1, 16, 12, isTouched: touchedIndex == i);
+          case 2:
+            return makeGroupData(2, 18, 5, isTouched: touchedIndex == i);
+          case 3:
+            return makeGroupData(3, 20, 16, isTouched: touchedIndex == i);
+          case 4:
+            return makeGroupData(4, 17, 6, isTouched: touchedIndex == i);
+          case 5:
+            return makeGroupData(5, 19, 1.5, isTouched: touchedIndex == i);
+          case 6:
+            return makeGroupData(6, 10, 1.5, isTouched: touchedIndex == i);
+          case 7:
+            return makeGroupData(7, 5, 12, isTouched: touchedIndex == i);
+          case 8:
+            return makeGroupData(8, 16, 12, isTouched: touchedIndex == i);
+          case 9:
+            return makeGroupData(9, 18, 5, isTouched: touchedIndex == i);
+          case 10:
+            return makeGroupData(10, 18, 5, isTouched: touchedIndex == i);
+          case 11:
+            return makeGroupData(11, 18, 5, isTouched: touchedIndex == i);
+          default:
+            return throw Error();
+        }
+      });
 }

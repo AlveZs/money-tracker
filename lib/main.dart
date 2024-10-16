@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:money_tracker/presentation/home/pages/home.dart';
-import 'package:money_tracker/presentation/home/widgets/styled_bottom_nav.dart';
+import 'package:money_tracker/common/widgets/styled_bottom_nav.dart';
 
 void main() {
   runApp(const MainApp());
