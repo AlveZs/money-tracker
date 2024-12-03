@@ -1,46 +1,48 @@
 import 'package:flutter/material.dart';
-import 'package:money_tracker/data/models/money/money_tx.dart';
 import 'package:money_tracker/presentation/home/widgets/list_item.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
-class TransactionsList extends StatelessWidget {
-  final Future<List<MoneyTx>>? moneyTxsPromise;
+import '../../../domain/entity/money_tx.dart';
+import '../../provider/money_tx_provider.dart';
 
-  const TransactionsList({super.key, required this.moneyTxsPromise});
+class TransactionsList extends StatelessWidget {
+  final List<MoneyTx> moneyTxs;
+  final MoneyTxListStatus txsFetchStatus;
+  final Function(MoneyTx) deleteTransaction;
+
+  const TransactionsList({
+    super.key,
+    required this.moneyTxs,
+    required this.txsFetchStatus,
+    required this.deleteTransaction,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<MoneyTx>>(
-      future: moneyTxsPromise,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.waiting) {
-          if (snapshot.hasError) {
-            return const Center(child: Text('Erro ao carregar as transações.'));
-          }
+    List<MoneyTx> moneyTxsList = txsFetchStatus == MoneyTxListStatus.loading
+        ? List.filled(
+            4,
+            MoneyTx(
+              description: 'USER',
+              value: 100,
+              date: DateTime.now(),
+            ))
+        : moneyTxs;
 
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('Nenhuma transação encontrada.'));
-          }
-        }
+    if (txsFetchStatus == MoneyTxListStatus.failed) {
+      return const Center(child: Text('Falha ao buscar os dados'));
+    }
 
-        List<MoneyTx> moneyTxs =
-            snapshot.connectionState == ConnectionState.waiting
-                ? List.filled(
-                    4,
-                    MoneyTx(
-                      'USER',
-                      100,
-                      DateTime.now(),
-                    ))
-                : snapshot.data!;
-
-        return Skeletonizer(
-          enabled: snapshot.connectionState == ConnectionState.waiting,
-          containersColor: Colors.grey,
-          child: TransactionListView(moneyTxs: moneyTxs),
-        );
-      },
-    );
+    return moneyTxs.isEmpty
+        ? const Center(child: Text('Sem resultados'))
+        : Skeletonizer(
+            enabled: txsFetchStatus == MoneyTxListStatus.loading,
+            containersColor: Colors.grey,
+            child: TransactionListView(
+              moneyTxs: moneyTxsList,
+              deleteTransaction: deleteTransaction,
+            ),
+          );
   }
 }
 
@@ -48,9 +50,11 @@ class TransactionListView extends StatefulWidget {
   const TransactionListView({
     super.key,
     required this.moneyTxs,
+    required this.deleteTransaction,
   });
 
   final List<MoneyTx> moneyTxs;
+  final Function(MoneyTx) deleteTransaction;
 
   @override
   State<TransactionListView> createState() => _TransactionListViewState();
@@ -90,10 +94,7 @@ class _TransactionListViewState extends State<TransactionListView> {
                     ),
                     TextButton(
                       onPressed: () {
-                        setState(() {
-                          widget.moneyTxs.removeAt(index);
-                        });
-
+                        widget.deleteTransaction(widget.moneyTxs[index]);
                         Navigator.pop(context);
                       },
                       child: const Text("DELETAR"),
