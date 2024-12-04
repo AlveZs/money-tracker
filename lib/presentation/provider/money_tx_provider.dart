@@ -83,8 +83,9 @@ class MoneyTxProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void changeDate(DateTime dateTime) {
+  Future<void> changeDate(DateTime dateTime) async {
     _currentDateTime = dateTime;
+    await fetchMoneyTxs();
     notifyListeners();
   }
 }

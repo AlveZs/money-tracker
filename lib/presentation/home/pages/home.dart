@@ -60,7 +60,10 @@ class _HomePageState extends State<HomePage> {
               SliverToBoxAdapter(
                 child: Column(
                   children: [
-                    HomeDatePicker(date: currentDateTime),
+                    HomeDatePicker(
+                      date: currentDateTime,
+                      changeDate: moneyTxNotifier.changeDate,
+                    ),
                     Row(
                       children: [
                         MoneyInfoTile(

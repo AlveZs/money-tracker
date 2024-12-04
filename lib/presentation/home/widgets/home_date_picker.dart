@@ -5,10 +5,12 @@ import '../../../common/widgets/date_picker.dart';
 
 class HomeDatePicker extends StatelessWidget {
   final DateTime date;
+  final void Function(DateTime) changeDate;
 
   const HomeDatePicker({
     super.key,
     required this.date,
+    required this.changeDate,
   });
 
   @override
@@ -33,7 +35,9 @@ class HomeDatePicker extends StatelessWidget {
               color: Theme.of(context).colorScheme.primary,
               borderRadius: BorderRadius.circular(20),
             ),
-            child: const CustomDatePicker(),
+            child: CustomDatePicker(
+              changeDate: changeDate,
+            ),
           ),
         ],
       ),

@@ -2,7 +2,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class CustomDatePicker extends StatefulWidget {
-  const CustomDatePicker({super.key});
+  final void Function(DateTime) changeDate;
+
+  const CustomDatePicker({
+    super.key,
+    required this.changeDate,
+  });
 
   @override
   State<CustomDatePicker> createState() => _CustomDatePickerState();
@@ -48,6 +53,7 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
             showDayOfWeek: true,
             onDateTimeChanged: (DateTime newDate) {
               setState(() => date = newDate);
+              widget.changeDate(newDate);
             },
           ),
         );
