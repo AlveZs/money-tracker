@@ -2,22 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:money_tracker/data/dto/money_tx_dto.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-const moneyTxsListKey = 'MONEY_TXS_LIST_MONTH';
+const moneyTxsListKey = 'MONEY_TXS_LIST_DATE';
 
 abstract class LocalStorage {
-  Future<bool> saveMoneyTxPage({
-    required int month,
-    required List<MoneyTxDto> list,
-  });
-
-
   Future<bool> saveMoneyTx({
     required MoneyTxDto moneyTx,
   });
 
   Future<bool> removeMoneyTx({ required MoneyTxDto moneyTx, });
 
-  List<MoneyTxDto> loadMoneyTxs({required int month});
+  List<MoneyTxDto> loadMoneyTxs({required DateTime date});
 }
 
 class LocalStorageImpl implements LocalStorage {
@@ -28,8 +22,8 @@ class LocalStorageImpl implements LocalStorage {
   }) : _sharedPref = sharedPreferences;
 
   @override
-  List<MoneyTxDto> loadMoneyTxs({required int month}) {
-    final key = getKeyToMonth(month);
+  List<MoneyTxDto> loadMoneyTxs({required DateTime date}) {
+    final key = getKeyByDate(date);
     final jsonList = _sharedPref.getStringList(key);
 
     return jsonList != null
@@ -38,32 +32,22 @@ class LocalStorageImpl implements LocalStorage {
   }
 
   @override
-  Future<bool> saveMoneyTxPage({
-    required int month,
-    required List<MoneyTxDto> list,
-  }) {
-    final jsonList = list.map((e) => e.toRawJson()).toList();
-    final key = getKeyToMonth(month);
-    return _sharedPref.setStringList(key, jsonList);
-  }
-
-  @override
   Future<bool> saveMoneyTx({ required MoneyTxDto moneyTx }) {
     final jsonTx = moneyTx.toRawJson();
-    final key = getKeyToMonth(moneyTx.date.month);
+    final key = getKeyByDate(moneyTx.date);
     final jsonList = _sharedPref.getStringList(key) ?? [];
     jsonList.add(jsonTx);
     return _sharedPref.setStringList(key, jsonList);
   }
 
   @visibleForTesting
-  static String getKeyToMonth(int month) {
-    return '${moneyTxsListKey}_$month';
+  static String getKeyByDate(DateTime date) {
+    return '${moneyTxsListKey}_${date.month}_${date.year}';
   }
   
   @override
   Future<bool> removeMoneyTx({required MoneyTxDto moneyTx}) {
-    final key = getKeyToMonth(moneyTx.date.month);
+    final key = getKeyByDate(moneyTx.date);
     final jsonList = _sharedPref.getStringList(key) ?? [];
     jsonList.remove(moneyTx.toRawJson());
 

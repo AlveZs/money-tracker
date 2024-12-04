@@ -8,8 +8,8 @@ class GetTxsByMonth {
 
   final MoneyTxRepository _repository;
 
-  Future<List<MoneyTx>> call({ int month = 0, String? query }) async {
-    final list = await _repository.getTxsByMonth(month: month, query: query);
+  Future<List<MoneyTx>> call({ required DateTime date, String? query }) async {
+    final list = await _repository.getTxsByDate(date: date, query: query);
 
     return list;
   }

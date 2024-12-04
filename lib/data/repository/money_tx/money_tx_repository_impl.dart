@@ -12,8 +12,8 @@ class MoneyTxRepositoryImpl implements MoneyTxRepository {
   }) : _localStorage = localStorage;
 
   @override
-  Future<List<MoneyTx>> getTxsByMonth({int month = 0, String? query}) async {
-    List<MoneyTx> moneyTxs = _localStorage.loadMoneyTxs(month: month);
+  Future<List<MoneyTx>> getTxsByDate({required DateTime date, String? query}) async {
+    List<MoneyTx> moneyTxs = _localStorage.loadMoneyTxs(date: date);
 
     if (query != null) {
       List<MoneyTx> filteredTxs =

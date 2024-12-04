@@ -48,7 +48,7 @@ class MoneyTxProvider extends ChangeNotifier {
     notifyListeners();
 
     final txList = await GetTxsByMonth(repository: _moneyTxRepository).call(
-      month: _currentDateTime.month,
+      date: _currentDateTime,
       query: query,
     );
     _moneyTxs.clear();
@@ -61,7 +61,10 @@ class MoneyTxProvider extends ChangeNotifier {
     await AddMoneyTx(
       repository: _moneyTxRepository,
     ).call(moneyTx: moneyTx);
-    _moneyTxs.add(moneyTx);
+    if (moneyTx.date.year == _currentDateTime.year &&
+        moneyTx.date.month == _currentDateTime.month) {
+      _moneyTxs.add(moneyTx);
+    }
     notifyListeners();
   }
 
