@@ -9,6 +9,8 @@ import 'package:money_tracker/presentation/provider/money_tx_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'core/configs/app_theme.dart';
+
 late SharedPreferences sharedPref;
 
 void main() async {
@@ -26,6 +28,8 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const theme = CustomTheme();
+
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
@@ -43,15 +47,8 @@ class MainApp extends StatelessWidget {
           Locale('en'),
           Locale('pt'),
         ],
-        theme: ThemeData(
-          useMaterial3: true,
-          colorSchemeSeed: const Color.fromRGBO(86, 80, 14, 171),
-        ),
-        darkTheme: ThemeData(
-          useMaterial3: true,
-          brightness: Brightness.dark,
-          colorSchemeSeed: const Color.fromRGBO(86, 80, 14, 171),
-        ),
+        theme: theme.toThemeData(),
+        darkTheme: theme.toThemeDataDark(),
         themeMode: ThemeMode.dark,
         home: const Scaffold(
           body: SafeArea(child: HomePage()),
