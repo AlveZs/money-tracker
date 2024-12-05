@@ -1,8 +1,14 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:money_tracker/util/constants.dart';
+
+import 'domain/entity/month_balance.dart';
 
 class BalanceChart extends StatefulWidget {
-  const BalanceChart({super.key});
+  final List<MonthBalance> balance;
+
+  const BalanceChart({super.key, required this.balance});
   final Color leftBarColor = Colors.red;
   final Color rightBarColor = Colors.green;
   final Color avgColor = Colors.yellowAccent;
@@ -27,6 +33,12 @@ class BalanceChartState extends State<BalanceChart> {
 
   @override
   Widget build(BuildContext context) {
+    final maxY = widget.balance.fold(20.0, (max, bl) {
+      double currGreater = bl.expenses > bl.income ? bl.expenses : bl.income;
+
+      return currGreater > max ? currGreater : max;
+    });
+
     return AspectRatio(
       aspectRatio: 1.8,
       child: Padding(
@@ -36,61 +48,21 @@ class BalanceChartState extends State<BalanceChart> {
           children: <Widget>[
             const Text('Últimos meses'),
             const SizedBox(
-              height: 30,
+              height: CHART_HEIGHT,
             ),
             Expanded(
               child: BarChart(
                 BarChartData(
-                  maxY: 20,
+                  maxY: maxY,
                   barTouchData: BarTouchData(
                     touchTooltipData: BarTouchTooltipData(
                       getTooltipColor: ((group) {
                         return Colors.grey;
                       }),
                       getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                        String weekDay;
-                        switch (group.x) {
-                          case 0:
-                            weekDay = 'Janeiro';
-                            break;
-                          case 1:
-                            weekDay = 'Fevereiro';
-                            break;
-                          case 2:
-                            weekDay = 'Março';
-                            break;
-                          case 3:
-                            weekDay = 'Abril';
-                            break;
-                          case 4:
-                            weekDay = 'Maio';
-                            break;
-                          case 5:
-                            weekDay = 'Junho';
-                            break;
-                          case 6:
-                            weekDay = 'Julho';
-                            break;
-                          case 7:
-                            weekDay = 'Agosto';
-                            break;
-                          case 8:
-                            weekDay = 'Setembro';
-                            break;
-                          case 9:
-                            weekDay = 'Outubro';
-                            break;
-                          case 10:
-                            weekDay = 'Novembro';
-                            break;
-                          case 11:
-                            weekDay = 'Dezembro';
-                            break;
-                          default:
-                            throw Error();
-                        }
+                        String monthName = monthsNames[group.x];
                         return BarTooltipItem(
-                          '$weekDay\n',
+                          '$monthName\n',
                           const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
@@ -142,14 +114,18 @@ class BalanceChartState extends State<BalanceChart> {
                         showTitles: true,
                         reservedSize: 28,
                         interval: 1,
-                        getTitlesWidget: leftTitles,
+                        getTitlesWidget: (value, titleMeta) => leftTitles(
+                          value,
+                          titleMeta,
+                          maxY,
+                        ),
                       ),
                     ),
                   ),
                   borderData: FlBorderData(
                     show: false,
                   ),
-                  barGroups: showingGroups(),
+                  barGroups: getShowingGroupsByBalance(widget.balance),
                   gridData: const FlGridData(show: false),
                 ),
               ),
@@ -163,7 +139,9 @@ class BalanceChartState extends State<BalanceChart> {
     );
   }
 
-  Widget leftTitles(double value, TitleMeta meta) {
+  Widget leftTitles(double value, TitleMeta meta, double maxY) {
+    final formatter = NumberFormat.compact();
+    formatter.maximumFractionDigits = 1;
     const style = TextStyle(
       color: Color(0xff7589a2),
       fontWeight: FontWeight.bold,
@@ -171,11 +149,11 @@ class BalanceChartState extends State<BalanceChart> {
     );
     String text;
     if (value == 0) {
-      text = '1K';
-    } else if (value == 10) {
-      text = '5K';
-    } else if (value == 19) {
-      text = '10K';
+      text = '0';
+    } else if (value == (maxY ~/ 2)) {
+      text = formatter.format(maxY ~/ 2);
+    } else if (value == (maxY.ceil() - 1)) {
+      text = formatter.format(maxY);
     } else {
       return Container();
     }
@@ -240,6 +218,23 @@ class BalanceChartState extends State<BalanceChart> {
         ),
       ],
     );
+  }
+
+  List<BarChartGroupData> getShowingGroupsByBalance(
+      List<MonthBalance> balance) {
+    final List<BarChartGroupData> groupData = [];
+    for (var month = 0; month < balance.length; month++) {
+      groupData.add(
+        makeGroupData(
+          month,
+          balance[month].income,
+          balance[month].expenses,
+          isTouched: touchedIndex == month,
+        ),
+      );
+    }
+
+    return groupData;
   }
 
   List<BarChartGroupData> showingGroups() => List.generate(12, (i) {

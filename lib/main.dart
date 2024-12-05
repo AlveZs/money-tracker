@@ -33,9 +33,10 @@ class MainApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
-            create: (_) => MoneyTxProvider(
-                  moneyTxRepository: moneyTxRepo,
-                )..fetchMoneyTxs()),
+          create: (_) => MoneyTxProvider(
+            moneyTxRepository: moneyTxRepo,
+          )..initNotifier(),
+        ),
       ],
       child: MaterialApp(
         localizationsDelegates: const [

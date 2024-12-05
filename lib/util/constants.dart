@@ -26,3 +26,7 @@ List<String> monthsNames = [
   'Novembro',
   'Dezembro'
 ];
+
+// CHART
+
+const double CHART_HEIGHT = 30;

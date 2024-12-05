@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:money_tracker/balance_chart.dart';
+import 'package:money_tracker/domain/entity/month_balance.dart';
 import 'package:money_tracker/presentation/home/widgets/home_date_picker.dart';
 import 'package:money_tracker/presentation/home/widgets/money_info_tile.dart';
 import 'package:money_tracker/presentation/home/widgets/transactions_list.dart';
 import 'package:money_tracker/presentation/provider/money_tx_provider.dart';
+import 'package:money_tracker/util/constants.dart';
 import 'package:provider/provider.dart';
 
 import '../../../domain/entity/money_tx.dart';
@@ -23,6 +25,9 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    /* WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<MoneyTxProvider>().fetchYearBalance(DateTime.now());
+    }); */
     //_moneyTxs = getTransactions();
     // final localStorage = LocalStorageImpl(sharedPreferences: sharedPref);
     // final repo = MoneyTxRepositoryImpl(localStorage: localStorage);
@@ -43,7 +48,18 @@ class _HomePageState extends State<HomePage> {
       _moneyTxs = moneyTxNotifier.moneyTxs;
       DateTime currentDateTime = moneyTxNotifier.currentDateTime;
       MoneyTxListStatus txsFetchStatus = moneyTxNotifier.status;
-      double txsSum = _moneyTxs.fold(0, (sum, tx) => sum + tx.value);
+      MoneyTxListStatus chartFetchStatus = moneyTxNotifier.chartStatus;
+      print(chartFetchStatus);
+      List<MonthBalance> yearBalance = moneyTxNotifier.balanceInYear;
+
+      void changeDate(DateTime date) {
+        if (date.year != moneyTxNotifier.currentDateTime.year) {
+          moneyTxNotifier.fetchYearBalance(date);
+        }
+        moneyTxNotifier.changeDate(date);
+        moneyTxNotifier.fetchMoneyTxs(date);
+      }
+
       return RefreshIndicator(
         onRefresh: _handleRefresh,
         notificationPredicate: (ScrollNotification notification) {
@@ -62,16 +78,25 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     HomeDatePicker(
                       date: currentDateTime,
-                      changeDate: moneyTxNotifier.changeDate,
+                      changeDate: changeDate,
                     ),
                     Row(
                       children: [
                         MoneyInfoTile(
-                            description: "Balanço do Mês", value: txsSum),
+                            description: "Balanço do Mês",
+                            value: getBalance(_moneyTxs)),
                       ],
                     ),
                     const Divider(),
-                    const BalanceChart(),
+                    chartFetchStatus == MoneyTxListStatus.loading
+                        ? const SizedBox(
+                          height: 200,
+                          child: Center(
+                              heightFactor: CHART_HEIGHT,
+                              child: CircularProgressIndicator(),
+                            ),
+                        )
+                        : BalanceChart(balance: yearBalance),
                     const Divider(),
                   ],
                 ),
@@ -89,9 +114,10 @@ class _HomePageState extends State<HomePage> {
                       leading: const Icon(Icons.search),
                       onChanged: (queryString) {
                         if (queryString.length > 3) {
-                          moneyTxNotifier.fetchMoneyTxs(queryString);
+                          moneyTxNotifier.fetchMoneyTxs(
+                              currentDateTime, queryString);
                         } else {
-                          moneyTxNotifier.fetchMoneyTxs();
+                          moneyTxNotifier.fetchMoneyTxs(currentDateTime);
                         }
                       },
                     ),
@@ -112,4 +138,30 @@ class _HomePageState extends State<HomePage> {
       );
     });
   }
+}
+
+double getBalance(List<MoneyTx> moneyTxs) {
+  return moneyTxs.fold(
+      0, (sum, tx) => tx.isExpense ? sum - tx.value : sum + tx.value);
+}
+
+List<MonthBalance> getYearBalance(List<MoneyTx> moneyTxs) {
+  final List<MonthBalance> balanceInYear = List<MonthBalance>.generate(
+    12,
+    (mb) => MonthBalance(income: 0, expenses: 0),
+    growable: false,
+  );
+
+  for (MonthBalance balance in balanceInYear) {
+    balance.income = 0;
+    balance.expenses = 0;
+  }
+
+  for (MoneyTx tx in moneyTxs) {
+    tx.isExpense
+        ? balanceInYear[tx.date.month - 1].expenses += tx.value
+        : balanceInYear[tx.date.month - 1].income += tx.value;
+  }
+
+  return balanceInYear;
 }
