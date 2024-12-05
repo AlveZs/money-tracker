@@ -180,8 +180,10 @@ class _TransactionFormState extends State<TransactionForm> {
   void addTx(MoneyTxProvider txNotifier) {
     MoneyTx data = MoneyTx(
       id: const Uuid().v4(),
-      value: double.parse(
-          _valueCtl.text.replaceAll(',', '.').replaceAll(RegExp(r'[^0-9!.]'), '')),
+      value: double.parse(_valueCtl.text
+          .replaceAll('.', '')
+          .replaceAll(',', '.')
+          .replaceAll(RegExp(r'[^0-9!.]'), '')),
       date: getDateTimeFromString(_dateCtl.text),
       description: _descriptionCtl.text,
       isExpense: isExpense,
