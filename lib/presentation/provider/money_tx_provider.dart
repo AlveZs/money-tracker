@@ -85,7 +85,6 @@ class MoneyTxProvider extends ChangeNotifier {
           : _balanceInYear[tx.date.month - 1].income += tx.value;
     }
 
-
     for (var i = 0; i < _balanceInYear.length; i++) {
       print(
           'Mês $i: Receita: ${_balanceInYear[i].income}, Despesas: ${_balanceInYear[i].expenses}');
@@ -130,6 +129,9 @@ class MoneyTxProvider extends ChangeNotifier {
       repository: _moneyTxRepository,
     ).call(transaction: moneyTx);
     _moneyTxs.remove(moneyTx);
+    moneyTx.isExpense
+        ? _balanceInYear[moneyTx.date.month - 1].expenses -= moneyTx.value
+        : _balanceInYear[moneyTx.date.month - 1].income -= moneyTx.value;
     notifyListeners();
   }
 
