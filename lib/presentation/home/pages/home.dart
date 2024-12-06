@@ -7,6 +7,7 @@ import 'package:money_tracker/presentation/home/widgets/transactions_list.dart';
 import 'package:money_tracker/presentation/provider/money_tx_provider.dart';
 import 'package:money_tracker/util/constants.dart';
 import 'package:provider/provider.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../../domain/entity/money_tx.dart';
 
@@ -89,13 +90,11 @@ class _HomePageState extends State<HomePage> {
                     ),
                     const Divider(),
                     chartFetchStatus == MoneyTxListStatus.loading
-                        ? const SizedBox(
-                          height: 200,
-                          child: Center(
-                              heightFactor: CHART_HEIGHT,
-                              child: CircularProgressIndicator(),
-                            ),
-                        )
+                        ? Skeletonizer(
+                            containersColor: Colors.grey,
+                            child: BalanceChart(
+                            balance: fakeBalance,
+                          ))
                         : BalanceChart(balance: yearBalance),
                     const Divider(),
                   ],

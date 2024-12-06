@@ -25,6 +25,7 @@ class BalanceChartState extends State<BalanceChart> {
 
   int touchedGroupIndex = -1;
   int touchedIndex = -1;
+  int touchedRodIndex = -1;
 
   @override
   void initState() {
@@ -48,7 +49,7 @@ class BalanceChartState extends State<BalanceChart> {
           children: <Widget>[
             const Text('Últimos meses'),
             const SizedBox(
-              height: CHART_HEIGHT,
+              height: 30,
             ),
             Expanded(
               child: BarChart(
@@ -61,12 +62,13 @@ class BalanceChartState extends State<BalanceChart> {
                       }),
                       getTooltipItem: (group, groupIndex, rod, rodIndex) {
                         String monthName = monthsNames[group.x];
+                        String type = rodIndex == 0 ? 'Despesa' : 'Receita';
                         return BarTooltipItem(
-                          '$monthName\n',
+                          '$type\n$monthName\n',
                           const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
-                            fontSize: 18,
+                            fontSize: 12,
                           ),
                           children: <TextSpan>[
                             TextSpan(
@@ -80,6 +82,8 @@ class BalanceChartState extends State<BalanceChart> {
                           ],
                         );
                       },
+                      fitInsideHorizontally: true,
+                      fitInsideVertically: true,
                     ),
                     touchCallback: (FlTouchEvent event, barTouchResponse) {
                       setState(() {
@@ -87,10 +91,13 @@ class BalanceChartState extends State<BalanceChart> {
                             barTouchResponse == null ||
                             barTouchResponse.spot == null) {
                           touchedIndex = -1;
+                          touchedRodIndex = -1;
                           return;
                         }
                         touchedIndex =
                             barTouchResponse.spot!.touchedBarGroupIndex;
+                        touchedRodIndex =
+                            barTouchResponse.spot!.touchedRodDataIndex;
                       });
                     },
                   ),
@@ -141,7 +148,7 @@ class BalanceChartState extends State<BalanceChart> {
 
   Widget leftTitles(double value, TitleMeta meta, double maxY) {
     final formatter = NumberFormat.compact();
-    formatter.maximumFractionDigits = 1;
+    formatter.maximumFractionDigits = 0;
     const style = TextStyle(
       color: Color(0xff7589a2),
       fontWeight: FontWeight.bold,
@@ -208,12 +215,16 @@ class BalanceChartState extends State<BalanceChart> {
       barRods: [
         BarChartRodData(
           toY: y1,
-          color: isTouched ? widget.touchedBarColor : widget.leftBarColor,
+          color: isTouched && touchedRodIndex == 0
+              ? widget.touchedBarColor
+              : widget.leftBarColor,
           width: width,
         ),
         BarChartRodData(
           toY: y2,
-          color: isTouched ? widget.touchedBarColor : widget.rightBarColor,
+          color: isTouched && touchedRodIndex == 1
+              ? widget.touchedBarColor
+              : widget.rightBarColor,
           width: width,
         ),
       ],
@@ -227,8 +238,8 @@ class BalanceChartState extends State<BalanceChart> {
       groupData.add(
         makeGroupData(
           month,
-          balance[month].income,
           balance[month].expenses,
+          balance[month].income,
           isTouched: touchedIndex == month,
         ),
       );
