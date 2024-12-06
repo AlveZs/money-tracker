@@ -109,6 +109,8 @@ class _HomePageState extends State<HomePage> {
                     margin: const EdgeInsets.symmetric(vertical: 8),
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: SearchBar(
+                      backgroundColor: WidgetStatePropertyAll(Theme.of(context).focusColor),
+                      elevation: const WidgetStatePropertyAll(0),
                       hintText: 'Buscar',
                       leading: const Icon(Icons.search),
                       onChanged: (queryString) {
