@@ -49,10 +49,11 @@ class _StyledBottomNavState extends State<StyledBottomNav> {
     switch (index) {
       case 1:
         _showTxModal();
+      default:
+        setState(() {
+          _selectedIndex = index;
+        });
     }
-    setState(() {
-      _selectedIndex = index;
-    });
   }
 
   @override
