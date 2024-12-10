@@ -26,17 +26,19 @@ class _StyledBottomNavState extends State<StyledBottomNav> {
             bottom: MediaQuery.of(context).viewInsets.bottom,
           ),
           child: SizedBox(
-            height: 450,
+            height: 410,
             child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: <Widget>[
-                  const TransactionForm(),
-                  ElevatedButton(
-                    child: const Text('Cancelar'),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: <Widget>[
+                    const TransactionForm(),
+                    TextButton(
+                      child: const Text('Cancelar'),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

@@ -26,7 +26,7 @@ class _TransactionFormState extends State<TransactionForm> {
       context: context,
       builder: (BuildContext context) => CupertinoActionSheet(
         actions: [
-          SizedBox(height: 150, child: child),
+          SizedBox(height: 170, child: child),
         ],
         cancelButton: CupertinoActionSheetAction(
           child: const Text('Confirmar'),
@@ -68,6 +68,13 @@ class _TransactionFormState extends State<TransactionForm> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             TextFormField(
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Por favor, insira a descrição';
+                }
+
+                return null;
+              },
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 labelText: 'Descrição',
@@ -97,6 +104,13 @@ class _TransactionFormState extends State<TransactionForm> {
             ),
             const SizedBox(height: 24),
             TextFormField(
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Por favor, insira o valor da transação';
+                }
+
+                return null;
+              },
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 labelText: 'Valor',
@@ -111,6 +125,13 @@ class _TransactionFormState extends State<TransactionForm> {
             ),
             const SizedBox(height: 24),
             TextFormField(
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Por favor, insira a data da transação';
+                }
+
+                return null;
+              },
               readOnly: true,
               controller: _dateCtl,
               decoration: const InputDecoration(
@@ -148,8 +169,33 @@ class _TransactionFormState extends State<TransactionForm> {
                   child: ElevatedButton(
                     style: flatButtonStyle,
                     onPressed: () {
-                      addTx(moneyTxNotifier);
-                      Navigator.pop(context);
+                      if (_txFormKey.currentState!.validate()) {
+                        addTx(moneyTxNotifier).then((result) {
+                          result
+                              ? ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Transação salva com sucesso!'),
+                                  ),
+                                )
+                              : ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    backgroundColor:
+                                        Theme.of(context).colorScheme.error,
+                                    content:
+                                        const Text('Erro ao salvar a transação!'),
+                                  ),
+                                );
+                        }).onError((e, _) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              backgroundColor:
+                                  Theme.of(context).colorScheme.error,
+                              content: const Text('Erro ao salvar a transação!'),
+                            ),
+                          );
+                        });
+                        Navigator.pop(context);
+                      }
                     },
                     child: const Text('Salvar'),
                   ),
@@ -177,7 +223,7 @@ class _TransactionFormState extends State<TransactionForm> {
     return DateTime.parse(formattedDateString);
   }
 
-  void addTx(MoneyTxProvider txNotifier) {
+  Future<bool> addTx(MoneyTxProvider txNotifier) async {
     MoneyTx data = MoneyTx(
       id: const Uuid().v4(),
       value: double.parse(_valueCtl.text
@@ -188,6 +234,7 @@ class _TransactionFormState extends State<TransactionForm> {
       description: _descriptionCtl.text,
       isExpense: isExpense,
     );
-    txNotifier.createMoneyTx(data);
+
+    return await txNotifier.createMoneyTx(data);
   }
 }

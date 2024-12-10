@@ -61,7 +61,6 @@ class MoneyTxProvider extends ChangeNotifier {
 
   Future<void> fetchYearBalance(DateTime date) async {
     _chartStatus = MoneyTxListStatus.loading;
-    print('loading');
     notifyListeners();
     final List<MoneyTx> allTx = [];
 
@@ -109,8 +108,8 @@ class MoneyTxProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> createMoneyTx(MoneyTx moneyTx) async {
-    await AddMoneyTx(
+  Future<bool> createMoneyTx(MoneyTx moneyTx) async {
+    bool result = await AddMoneyTx(
       repository: _moneyTxRepository,
     ).call(moneyTx: moneyTx);
     if (moneyTx.date.year == _currentDateTime.year) {
@@ -122,10 +121,12 @@ class MoneyTxProvider extends ChangeNotifier {
           : _balanceInYear[moneyTx.date.month - 1].income += moneyTx.value;
     }
     notifyListeners();
+
+    return result;
   }
 
-  Future<void> deleteTx(MoneyTx moneyTx) async {
-    await DeleteMoneyTx(
+  Future<bool> deleteTx(MoneyTx moneyTx) async {
+    bool result = await DeleteMoneyTx(
       repository: _moneyTxRepository,
     ).call(transaction: moneyTx);
     _moneyTxs.remove(moneyTx);
@@ -133,6 +134,8 @@ class MoneyTxProvider extends ChangeNotifier {
         ? _balanceInYear[moneyTx.date.month - 1].expenses -= moneyTx.value
         : _balanceInYear[moneyTx.date.month - 1].income -= moneyTx.value;
     notifyListeners();
+
+    return result;
   }
 
   Future<void> updateTx(MoneyTx moneyTx) async {

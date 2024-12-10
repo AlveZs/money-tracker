@@ -8,7 +8,7 @@ import '../../provider/money_tx_provider.dart';
 class TransactionsList extends StatelessWidget {
   final List<MoneyTx> moneyTxs;
   final MoneyTxListStatus txsFetchStatus;
-  final Function(MoneyTx) deleteTransaction;
+  final Future<bool> Function(MoneyTx) deleteTransaction;
 
   const TransactionsList({
     super.key,
@@ -54,7 +54,7 @@ class TransactionListView extends StatefulWidget {
   });
 
   final List<MoneyTx> moneyTxs;
-  final Function(MoneyTx) deleteTransaction;
+  final Future<bool> Function(MoneyTx) deleteTransaction;
 
   @override
   State<TransactionListView> createState() => _TransactionListViewState();
@@ -94,7 +94,34 @@ class _TransactionListViewState extends State<TransactionListView> {
                     ),
                     TextButton(
                       onPressed: () {
-                        widget.deleteTransaction(widget.moneyTxs[index]);
+                        widget
+                            .deleteTransaction(widget.moneyTxs[index])
+                            .then((result) {
+                          result
+                              ? ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content:
+                                        Text('Transação deletada com sucesso!'),
+                                  ),
+                                )
+                              : ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    backgroundColor:
+                                        Theme.of(context).colorScheme.error,
+                                    content: const Text(
+                                        'Erro ao deletar a transação!'),
+                                  ),
+                                );
+                        }).onError((e, _) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              backgroundColor:
+                                  Theme.of(context).colorScheme.error,
+                              content:
+                                  const Text('Erro ao deletar a transação!'),
+                            ),
+                          );
+                        });
                         Navigator.pop(context);
                       },
                       child: const Text("DELETAR"),
