@@ -7,6 +7,7 @@ class MoneyTxDto extends MoneyTx {
     required super.description,
     required super.value,
     required super.date,
+    super.id,
     super.isExpense,
   });
 
@@ -16,6 +17,7 @@ class MoneyTxDto extends MoneyTx {
   String toRawJson() => json.encode(toMap());
 
   factory MoneyTxDto.fromMap(Map<String, dynamic> json) => MoneyTxDto(
+        id: json['id'],
         description: json['description'],
         value: json['value'],
         date: DateTime.parse(json['date']),
@@ -23,6 +25,7 @@ class MoneyTxDto extends MoneyTx {
       );
 
   Map<String, dynamic> toMap() => {
+        'id': id,
         'description': description,
         'value': value,
         'date': DateFormat('yyyy-MM-dd').format(date),

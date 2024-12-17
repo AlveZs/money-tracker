@@ -8,7 +8,8 @@ import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
 class TransactionForm extends StatefulWidget {
-  const TransactionForm({super.key});
+  final MoneyTx? transaction;
+  const TransactionForm({super.key, this.transaction});
 
   @override
   State<TransactionForm> createState() => _TransactionFormState();
@@ -20,6 +21,7 @@ class _TransactionFormState extends State<TransactionForm> {
   final TextEditingController _descriptionCtl = TextEditingController();
   final TextEditingController _valueCtl = TextEditingController();
   bool isExpense = false;
+  String? transactionId;
 
   void _showDialog(Widget child) {
     showCupertinoModalPopup<void>(
@@ -57,6 +59,21 @@ class _TransactionFormState extends State<TransactionForm> {
       borderRadius: BorderRadius.all(Radius.circular(2)),
     ),
   );
+
+  @override
+  void initState() {
+    super.initState();
+    MoneyTx? transaction = widget.transaction;
+    if (transaction != null) {
+      DateTime date = transaction.date;
+      _dateCtl.text = getFormattedDate(date);
+      _descriptionCtl.text = transaction.description;
+      isExpense = transaction.isExpense;
+      _valueCtl.text =
+          'R\$ ${transaction.value.toStringAsFixed(2).replaceAll('.', ',')}';
+      transactionId = transaction.id;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -174,23 +191,26 @@ class _TransactionFormState extends State<TransactionForm> {
                           result
                               ? ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text('Transação salva com sucesso!'),
+                                    content:
+                                        Text('Transação salva com sucesso!'),
                                   ),
                                 )
                               : ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     backgroundColor:
                                         Theme.of(context).colorScheme.error,
-                                    content:
-                                        const Text('Erro ao salvar a transação!'),
+                                    content: const Text(
+                                        'Erro ao salvar a transação!'),
                                   ),
                                 );
                         }).onError((e, _) {
+                          print(e);
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               backgroundColor:
                                   Theme.of(context).colorScheme.error,
-                              content: const Text('Erro ao salvar a transação!'),
+                              content:
+                                  const Text('Erro ao salvar a transação!'),
                             ),
                           );
                         });
@@ -225,7 +245,6 @@ class _TransactionFormState extends State<TransactionForm> {
 
   Future<bool> addTx(MoneyTxProvider txNotifier) async {
     MoneyTx data = MoneyTx(
-      id: const Uuid().v4(),
       value: double.parse(_valueCtl.text
           .replaceAll('.', '')
           .replaceAll(',', '.')
@@ -235,6 +254,17 @@ class _TransactionFormState extends State<TransactionForm> {
       isExpense: isExpense,
     );
 
+    if (transactionId != null) {
+      data.id = transactionId;
+      final result = await txNotifier.updateTx(data);
+      if (data.date.year == txNotifier.currentDateTime.year) {
+        await txNotifier.fetchYearBalance(data.date);
+      }
+
+      return result;
+    }
+
+    data.id = const Uuid().v4();
     return await txNotifier.createMoneyTx(data);
   }
 }

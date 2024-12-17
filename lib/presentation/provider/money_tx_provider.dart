@@ -138,14 +138,23 @@ class MoneyTxProvider extends ChangeNotifier {
     return result;
   }
 
-  Future<void> updateTx(MoneyTx moneyTx) async {
-    MoneyTx originalTx = _moneyTxs.firstWhere((tx) => tx.id == moneyTx.id);
-    int txIndex = _moneyTxs.indexOf(originalTx);
-    _moneyTxs[txIndex] = moneyTx;
-    await UpdateMoneyTx(
+  Future<bool> updateTx(MoneyTx moneyTx) async {
+    bool result = await UpdateMoneyTx(
       repository: _moneyTxRepository,
     ).call(moneyTx: moneyTx);
+
+    MoneyTx originalTx = _moneyTxs.firstWhere((tx) => tx.id == moneyTx.id);
+    int txIndex = _moneyTxs.indexOf(originalTx);
+    if (txIndex > -1) {
+      if (_currentDateTime.month == moneyTx.date.month) {
+        _moneyTxs[txIndex] = moneyTx;
+      } else {
+        _moneyTxs.removeAt(txIndex);
+      }
+    }
     notifyListeners();
+
+    return result;
   }
 
   Future<void> changeDate(DateTime dateTime) async {

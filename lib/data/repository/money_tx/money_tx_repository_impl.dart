@@ -27,6 +27,7 @@ class MoneyTxRepositoryImpl implements MoneyTxRepository {
   @override
   Future<bool> addMoneyTx(MoneyTx transaction) {
     return _localStorage.saveMoneyTx(moneyTx: MoneyTxDto(
+      id: transaction.id,
       description: transaction.description,
       date: transaction.date,
       value: transaction.value,
@@ -37,6 +38,7 @@ class MoneyTxRepositoryImpl implements MoneyTxRepository {
   @override
   Future<bool> deleteMoneyTx(MoneyTx transaction) {
     return _localStorage.removeMoneyTx(moneyTx: MoneyTxDto(
+      id: transaction.id,
       description: transaction.description,
       date: transaction.date,
       value: transaction.value,
@@ -46,7 +48,12 @@ class MoneyTxRepositoryImpl implements MoneyTxRepository {
 
   @override
   Future<bool> updateMoneyTx(MoneyTx transaction) {
-    // TODO: implement updateMoneyTx
-    throw UnimplementedError();
+     return _localStorage.updateMoney(moneyTx: MoneyTxDto(
+      id: transaction.id,
+      description: transaction.description,
+      date: transaction.date,
+      value: transaction.value,
+      isExpense: transaction.isExpense,
+    ));
   }
 }
