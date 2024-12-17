@@ -52,6 +52,7 @@ class _HomePageState extends State<HomePage> {
       MoneyTxListStatus chartFetchStatus = moneyTxNotifier.chartStatus;
       print(chartFetchStatus);
       List<MonthBalance> yearBalance = moneyTxNotifier.balanceInYear;
+      MonthBalance currentMonthBalance = yearBalance[currentDateTime.month - 1];
 
       void changeDate(DateTime date) {
         if (date.year != moneyTxNotifier.currentDateTime.year) {
@@ -84,8 +85,10 @@ class _HomePageState extends State<HomePage> {
                     Row(
                       children: [
                         MoneyInfoTile(
-                            description: "Balanço do Mês",
-                            value: getBalance(_moneyTxs)),
+                          description: "Balanço do Mês",
+                          value: currentMonthBalance.income -
+                              currentMonthBalance.expenses,
+                        ),
                       ],
                     ),
                     const Divider(),
@@ -93,8 +96,8 @@ class _HomePageState extends State<HomePage> {
                         ? Skeletonizer(
                             containersColor: Colors.grey,
                             child: BalanceChart(
-                            balance: fakeBalance,
-                          ))
+                              balance: fakeBalance,
+                            ))
                         : BalanceChart(balance: yearBalance),
                     const Divider(),
                   ],
@@ -109,12 +112,13 @@ class _HomePageState extends State<HomePage> {
                     margin: const EdgeInsets.symmetric(vertical: 8),
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: SearchBar(
-                      backgroundColor: WidgetStatePropertyAll(Theme.of(context).focusColor),
+                      backgroundColor:
+                          WidgetStatePropertyAll(Theme.of(context).focusColor),
                       elevation: const WidgetStatePropertyAll(0),
                       hintText: 'Buscar',
                       leading: const Icon(Icons.search),
                       onChanged: (queryString) {
-                        if (queryString.length > 3) {
+                        if (queryString.length > 1) {
                           moneyTxNotifier.fetchMoneyTxs(
                               currentDateTime, queryString);
                         } else {
@@ -139,30 +143,4 @@ class _HomePageState extends State<HomePage> {
       );
     });
   }
-}
-
-double getBalance(List<MoneyTx> moneyTxs) {
-  return moneyTxs.fold(
-      0, (sum, tx) => tx.isExpense ? sum - tx.value : sum + tx.value);
-}
-
-List<MonthBalance> getYearBalance(List<MoneyTx> moneyTxs) {
-  final List<MonthBalance> balanceInYear = List<MonthBalance>.generate(
-    12,
-    (mb) => MonthBalance(income: 0, expenses: 0),
-    growable: false,
-  );
-
-  for (MonthBalance balance in balanceInYear) {
-    balance.income = 0;
-    balance.expenses = 0;
-  }
-
-  for (MoneyTx tx in moneyTxs) {
-    tx.isExpense
-        ? balanceInYear[tx.date.month - 1].expenses += tx.value
-        : balanceInYear[tx.date.month - 1].income += tx.value;
-  }
-
-  return balanceInYear;
 }
