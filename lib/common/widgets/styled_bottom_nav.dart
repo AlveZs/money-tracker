@@ -23,7 +23,7 @@ class _StyledBottomNavState extends State<StyledBottomNav> {
             top: 24,
             left: 24,
             right: 24,
-            bottom: MediaQuery.of(context).viewInsets.bottom,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 25,
           ),
           child: SizedBox(
             height: 410,

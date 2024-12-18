@@ -74,7 +74,7 @@ class _TransactionListViewState extends State<TransactionListView> {
             top: 24,
             left: 24,
             right: 24,
-            bottom: MediaQuery.of(context).viewInsets.bottom,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 25,
           ),
           child: SizedBox(
             height: 410,
@@ -107,36 +107,61 @@ class _TransactionListViewState extends State<TransactionListView> {
       physics: const AlwaysScrollableScrollPhysics(),
       itemCount: widget.moneyTxs.length,
       itemBuilder: (BuildContext context, int index) {
-        return InkWell(
-          onLongPress: () {},
-          child: GestureDetector(
-            onLongPress: () => _showTxModal(widget.moneyTxs[index]),
-            child: Dismissible(
-              key: Key("$index"),
-              background: Container(
-                color: Colors.red,
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                alignment: Alignment.centerRight,
-                child: const Icon(
+        return Dismissible(
+          key: Key("$index"),
+          background: Container(
+            color: Colors.green,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            alignment: Alignment.centerRight,
+            child: const Align(
+              alignment: Alignment.centerLeft,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                spacing: 6,
+                children: [
+                  Icon(
+                    Icons.edit,
+                    color: Colors.white,
+                  ),
+                  Text('Editar'),
+                ],
+              ),
+            ),
+          ),
+          secondaryBackground: Container(
+            color: Colors.red,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            alignment: Alignment.centerRight,
+            child: const Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              spacing: 6,
+              children: [
+                Icon(
                   Icons.delete,
                   color: Colors.white,
                 ),
-              ),
-              confirmDismiss: (DismissDirection direction) async {
-                return await showDeleteConfirmDialog(context, index);
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 16,
-                ),
-                child: ListItem(
-                  description: widget.moneyTxs[index].description,
-                  value: widget.moneyTxs[index].value,
-                  date: widget.moneyTxs[index].date,
-                  isExpense: widget.moneyTxs[index].isExpense,
-                ),
-              ),
+                Text('Deletar'),
+              ],
+            ),
+          ),
+          confirmDismiss: (DismissDirection direction) async {
+            if (direction == DismissDirection.endToStart) {
+              return await showDeleteConfirmDialog(context, index);
+            } else {
+              _showTxModal(widget.moneyTxs[index]);
+              return null;
+            }
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 8,
+              vertical: 16,
+            ),
+            child: ListItem(
+              description: widget.moneyTxs[index].description,
+              value: widget.moneyTxs[index].value,
+              date: widget.moneyTxs[index].date,
+              isExpense: widget.moneyTxs[index].isExpense,
             ),
           ),
         );
